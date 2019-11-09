@@ -23,7 +23,6 @@ def dos(target_ip):
             pkt = IP1 / TCP1
             sendrecv.send(pkt, inter=0.001)
 
-            print('packet {} sent'.format(count))
 
 
 if __name__ == '__main__':
