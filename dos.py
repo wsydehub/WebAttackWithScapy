@@ -31,7 +31,7 @@ def port_scan(time_out, target_ip, port_list=None):
     if port_list is None:
         port_list = common_port.port_list_top_1000
     for port in port_list:
-        pkt = a / inet.TCP(dport=port)
+        pkt = a / inet.TCP(dport=port, flags='S')
         ans = sendrecv.sr1(pkt, timeout=2)
         if ans is not None:
             _expose_port.append(port)
@@ -41,7 +41,12 @@ def port_scan(time_out, target_ip, port_list=None):
 
 
 if __name__ == '__main__':
-    target = sys.argv[1]
-    # dos(target)
+    target = sys.argv[2]
+    _method = sys.argv[1]
 
-    port_scan(target)
+    if _method == 'dos':
+        dos(target)
+
+    elif _method == 'scan':
+        _expose_prot = port_scan(600, target)
+        print(_expose_prot)
