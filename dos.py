@@ -33,7 +33,7 @@ def port_scan(time_out, target_ip, port_list=None):
     for port in port_list:
         pkt = a / inet.TCP(dport=port, flags='S')
         ans = sendrecv.sr1(pkt, timeout=2)
-        if ans is not None:
+        if ans is not None and ans.flags == 'S':
             _expose_port.append(port)
         if _expose_port.__len__() == port_list.__len__(
         ) or time.time() - _start > time_out:
