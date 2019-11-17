@@ -117,11 +117,55 @@ def plot_ip_cnt(data_path):
         dst_list.append(dst_cnt)
         all_list.append(src_cnt + dst_cnt)
 
-    plot_bar('ip address', 'packet number', 'packet statistic(dos used real ip)', 3,
+    plot_bar('ip address', 'packet number',
+             'packet statistic(dos used real ip)', 3,
              ['send', 'recive', 'total'], X, src_list, dst_list, all_list)
 
 
+def plot_zero_len_cnt(data_path):
+    data = np.load(data_path)
+    src_dict, _ = build_dict(data)
+    X = []
+    Y = []
+    for key in src_dict.keys():
+        X.append(key)
+        cnt = 0
+        for value in src_dict[key]:
+            if value[6] == '0':
+                cnt += 1
+        Y.append(cnt)
+
+    plot_bar('ip address', 'packet number',
+             'the number of packet which length=0', 1, ['zero length number'],
+             X, Y)
+
+
+def plot_zero_SYN_len_cnt(data_path):
+    data = np.load(data_path)
+    src_dict, _ = build_dict(data)
+    X = []
+    Y = []
+    _SYN = []
+    for key in src_dict.keys():
+        X.append(key)
+        cnt = 0
+        SYN_cnt = 0
+        for value in src_dict[key]:
+            if value[6] == '0':
+                cnt += 1
+                if value[5] == 'S':
+                    SYN_cnt += 1
+        Y.append(cnt)
+        _SYN.append(SYN_cnt)
+        print(SYN_cnt / cnt)
+
+    plot_bar('ip address', 'packet number',
+             'the number of packet which length=0 and falgs=SYN', 2,
+             ['zero length', 'SYN'], X, Y, _SYN)
+
+
 if __name__ == '__main__':
-    data_path = 'data/scan_dump.npy'
+    data_path = 'data/dos_dump.npy'
     # process_data_to_np(data_path)
-    plot_ip_cnt(data_path)
+    # plot_ip_cnt(data_path)
+    plot_zero_SYN_len_cnt(data_path)
